@@ -48,6 +48,7 @@ def audit_kubernetes(kubeconfig=None, context=None):
         check_network_policies,
         check_namespace_isolation,
         check_privileged_containers,
+        check_versions,
         # Add other checks here
     ]
 
