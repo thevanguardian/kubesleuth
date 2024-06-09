@@ -1,12 +1,9 @@
 # KubeSleuth
-
+![KubeSleuth](kube-sleuth.png)
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-1.18%2B-blue)
 ![License](https://img.shields.io/badge/license-GPL%20v3-blue)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
-
-![KubeSleuth](kube-sleuth.png)
-
 
 KubeSleuth is a simple tool for auditing your Kubernetes clusters. It scans your cluster configurations for misconfigurations, best practices, security issues, and resource allocations, providing detailed reports to help you maintain a healthy and secure environment.
 
