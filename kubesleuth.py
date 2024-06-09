@@ -1,7 +1,6 @@
 import argparse
 from kubernetes import config
-from outputs.json_output import results_to_json
-from outputs.markdown_output import results_to_markdown
+from outputs import *
 from tasks import *
 
 # Load Kubernetes configuration
@@ -47,7 +46,7 @@ def audit_kubernetes(kubeconfig=None, context=None):
 # Command-line interface
 def main():
     parser = argparse.ArgumentParser(description="Kubernetes Configuration Audit by KubeSleuth")
-    parser.add_argument("--output", choices=["json", "markdown"], default="json", help="Output format (json or markdown)")
+    parser.add_argument("--output", choices=["json", "markdown", "yaml"], default="json", help="Output format (json, markdown, or yaml)")
     parser.add_argument("--kubeconfig", help="Path to the kubeconfig file", default=None)
     parser.add_argument("--context", help="Kubernetes context to use", default=None)
     parser.add_argument("--level", choices=["high", "medium", "low", "all"], default="all", help="Assessment level to display")
@@ -59,8 +58,15 @@ def main():
 
     if args.output == "json":
         print(results_to_json(audit_results))
-    else:
+    elif args.output == "markdown":
         print(results_to_markdown(audit_results))
+    elif args.output == "yaml":
+        print(results_to_yaml(audit_results))
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
