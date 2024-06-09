@@ -1,3 +1,24 @@
+"""
+Loads the Kubernetes configuration based on the provided kubeconfig file and context.
+
+Args:
+    kubeconfig (str, optional): Path to the kubeconfig file. If not provided, the default kubeconfig file will be used.
+    context (str, optional): Kubernetes context to use. If not provided, the default context will be used.
+
+Raises:
+    Exception: If there is an error loading the Kubernetes configuration.
+"""
+
+"""
+Performs a comprehensive audit of the Kubernetes cluster configuration.
+
+Args:
+    kubeconfig (str, optional): Path to the kubeconfig file. If not provided, the default kubeconfig file will be used.
+    context (str, optional): Kubernetes context to use. If not provided, the default context will be used.
+
+Returns:
+    dict: A dictionary containing the audit results, including any issues found.
+"""
 import argparse
 from outputs.json_output import results_to_json
 from outputs.markdown_output import results_to_markdown

@@ -5,7 +5,7 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 
-![KubeSleuth](kube-sleuth.png) <!-- Replace with the actual image URL -->
+![KubeSleuth](kube-sleuth.png)
 
 
 KubeSleuth is a simple tool for auditing your Kubernetes clusters. It scans your cluster configurations for misconfigurations, best practices, security issues, and resource allocations, providing detailed reports to help you maintain a healthy and secure environment.
@@ -107,5 +107,6 @@ Create your feature branch (git checkout -b feature/your-feature)
 Commit your changes (git commit -m 'Add your feature')
 Push to the branch (git push origin feature/your-feature)
 Open a pull request
-License
+
+## License
 This project is licensed under the MIT License - see the LICENSE file for details.
