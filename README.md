@@ -5,12 +5,7 @@
 ![License](https://img.shields.io/badge/license-GPL%20v3-blue)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 
-![KubeSleuth](kube-sleuth.png)
-
-
 KubeSleuth is a simple tool for auditing your Kubernetes clusters. It scans your cluster configurations for misconfigurations, best practices, security issues, and resource allocations, providing detailed reports to help you maintain a healthy and secure environment.
-
-It's still in early development, so expect some rough edges.
 
 ## Table of Contents
 
@@ -24,29 +19,23 @@ It's still in early development, so expect some rough edges.
 
 ## How to Use
 
-1. **Clone the repository**:
+1. **Install KubeSleuth from PyPI**:
     ```bash
-    git clone https://github.com/yourusername/kubesleuth.git
-    cd kubesleuth
+    $ pip install kubesleuth
     ```
 
-2. **Install dependencies**:
+2. **Run KubeSleuth**:
     ```bash
-    pip install -r requirements.txt
+    $ kubesleuth --output markdown
     ```
 
-3. **Run KubeSleuth**:
-    ```bash
-    python3 kubesleuth.py --output markdown
-    ```
-
-4. **Optional arguments**:
+3. **Optional arguments**:
     - `--kubeconfig`: Path to the kubeconfig file (default: `$HOME/.kube/config`)
     - `--context`: Kubernetes context to use
 
     Example:
     ```bash
-    python3 kubesleuth.py --output json --kubeconfig /path/to/kubeconfig --context my-context
+    $ kubesleuth --output json --kubeconfig /path/to/kubeconfig --context my-context
     ```
 
 ## Overview
@@ -59,54 +48,70 @@ KubeSleuth is designed to help you maintain a secure and well-configured Kuberne
 - **Network Policies**: Ensures network policies are defined and enforced.
 - **Namespace Isolation**: Checks if resources are properly isolated by namespaces.
 - **Privileged Containers**: Detects containers running with privileged access.
+- **Version Check**: Validates compatibility and ensures Kubernetes components are up to date.
 
 By running KubeSleuth, you can quickly identify potential issues and areas for improvement in your cluster's configuration.
 
 ## Installation
 
-To install KubeSleuth, follow these steps:
+### From PyPI
 
-1. **Clone the repository**:
-    ```bash
-    git clone https://github.com/thevanguardian/kubesleuth.git
-    cd kubesleuth
-    ```
+To install KubeSleuth from PyPI, run the following command:
 
-2. **Install dependencies**:
-    ```bash
-    pip install -r requirements.txt
-    ```
+```bash
+$ pip install kubesleuth
+```
 
+Manual Installation
+To manually install KubeSleuth, follow these steps:
+
+Clone the repository:
+
+```bash
+$ git clone https://github.com/thevanguardian/kubesleuth.git
+$ cd kubesleuth
+```
+
+Install dependencies:
+
+```bash
+$ pip install -r requirements.txt
+```
+Build and install the package:
+```bash
+$ make install
+```
 ## Features
-
-- **RBAC Audit**: Identifies insecure role bindings and missing subjects.
-- **Authentication Checks**: Verifies if basic authentication is enabled.
-- **Custom Roles Review**: Lists and reviews custom roles and cluster roles.
-- **Network Policies Audit**: Ensures network policies are present and enforced.
-- **Namespace Isolation Checks**: Detects resources placed in the default namespace.
-- **Privileged Containers Detection**: Finds containers running with privileged access.
-- **Flexible Configuration**: Supports custom kubeconfig files and contexts.
+- RBAC Audit: Identifies insecure role bindings and missing subjects.
+- Authentication Checks: Verifies if basic authentication is enabled.
+- Custom Roles Review: Lists and reviews custom roles and cluster roles.
+- Network Policies Audit: Ensures network policies are present and enforced.
+- Namespace Isolation Checks: Detects resources placed in the default namespace.
+- Privileged Containers Detection: Finds containers running with privileged access.
+- Version Check: Validates compatibility and ensures Kubernetes components are up to date.
+- Flexible Configuration: Supports custom kubeconfig files and contexts.
 
 ## Configuration
-
 KubeSleuth can be configured using command-line arguments:
 
-- `--kubeconfig`: Path to the kubeconfig file (default: `$HOME/.kube/config`)
-- `--context`: Kubernetes context to use
-- `--output`: Output format (`json` or `markdown`)
+- --kubeconfig: Path to the kubeconfig file (default: $HOME/.kube/config)
+- --context: Kubernetes context to use
+- --output: Output format (json, markdown, or yaml)
 
-Example:
+### Example:
 ```bash
-python3 kubesleuth.py --output markdown --kubeconfig /path/to/kubeconfig --context my-context
+$ kubesleuth --output markdown \
+    --kubeconfig /path/to/kubeconfig \
+    --context my-context
 ```
 ## Contributing
 Contributions are welcome! If you have suggestions for improvements or new features, please create an issue or submit a pull request.
 
-Fork the repository
-Create your feature branch (git checkout -b feature/your-feature)
-Commit your changes (git commit -m 'Add your feature')
-Push to the branch (git push origin feature/your-feature)
-Open a pull request
+- Fork the repository
+- Create your feature branch (git checkout -b feature/your-feature)
+- Commit your changes (git commit -m 'Add your feature')
+- Push to the branch (git push origin feature/your-feature)
+- Open a pull request
 
 ## License
 This project is licensed under the GNU General Public License v3 (GPLv3).
