@@ -23,6 +23,7 @@ def audit_kubernetes(kubeconfig=None, context=None):
         check_namespace_isolation,
         check_privileged_containers,
         check_versions,
+        check_node_health,
     ]
 
     for check in checks:
