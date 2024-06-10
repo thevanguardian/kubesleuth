@@ -1,80 +1,10 @@
-# Kubernetes Configuration Audit Report
+## Kubernetes Audit Report
 
-## RBAC
-{% if results.rbac %}
-### Role Bindings
-{% for rb in results.rbac.role_bindings %}
-- **Namespace**: {{ rb.metadata.namespace }}
-- **Name**: {{ rb.metadata.name }}
-- **Role Ref**: {{ rb.role_ref.name }}
-- **Subjects**:
-  {% if rb.subjects %}
-  {% for subject in rb.subjects %}
-  - **Kind**: {{ subject.kind }}, **Name**: {{ subject.name }}
-  {% endfor %}
-  {% else %}
-  - **No subjects**
-  {% endif %}
-{% endfor %}
-
-### Cluster Role Bindings
-{% for crb in results.rbac.cluster_role_bindings %}
-- **Name**: {{ crb.metadata.name }}
-- **Role Ref**: {{ crb.role_ref.name }}
-- **Subjects**:
-  {% if crb.subjects %}
-  {% for subject in crb.subjects %}
-  - **Kind**: {{ subject.kind }}, **Name**: {{ subject.name }}
-  {% endfor %}
-  {% else %}
-  - **No subjects**
-  {% endif %}
-{% endfor %}
-{% endif %}
-
-## Password Authentication
-- **Password Auth**: {{ results.password_auth.password_auth }}
-
-## Custom Roles
-{% if results.custom_roles %}
-### Roles
-{% for role in results.custom_roles.roles %}
-- **Namespace**: {{ role.metadata.namespace }}
-- **Name**: {{ role.metadata.name }}
-{% endfor %}
-
-### Cluster Roles
-{% for cr in results.custom_roles.cluster_roles %}
-- **Name**: {{ cr.metadata.name }}
-{% endfor %}
-{% endif %}
-
-## Network Policies
-{% if results.network_policies %}
-{% for np in results.network_policies.network_policies %}
-- **Namespace**: {{ np.metadata.namespace }}
-- **Name**: {{ np.metadata.name }}
-{% endfor %}
-{% endif %}
-
-## Namespace Isolation
-{% if results.namespace_isolation %}
-{% for ns in results.namespace_isolation.namespaces %}
-- **Name**: {{ ns.metadata.name }}
-{% endfor %}
-{% endif %}
-
-## Privileged Containers
-- **Privileged Containers**:
-  {% for pc in results.privileged_containers.privileged_containers %}
-  - **Pod**: {{ pc }}
-  {% endfor %}
-
-# Issues
 {% for issue in results.issues %}
+### Issue
+- **Name**: {{ issue.name }}
+- **Namespace**: {{ issue.namespace }}
+- **Fault**: {{ issue.fault }}
 - **Severity**: {{ issue.severity }}
-- **Issue**: {{ issue.issue }}
-- **Namespace**: {{ issue.namespace if 'namespace' in issue else 'N/A' }}
-- **Pod**: {{ issue.pod if 'pod' in issue else 'N/A' }}
-- **Name**: {{ issue.name if 'name' in issue else 'N/A' }}
+
 {% endfor %}

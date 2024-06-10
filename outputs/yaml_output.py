@@ -1,14 +1,16 @@
-"""
-Converts a dictionary of results to a YAML string.
-
-Args:
-    results (Dict[str, Any]): A dictionary of results to be converted to YAML.
-
-Returns:
-    str: The YAML string representation of the results dictionary.
-"""
 import yaml
-from typing import Any, Dict
+from typing import Dict, Any
 
 def results_to_yaml(results: Dict[str, Any]) -> str:
-    return yaml.dump(results, default_flow_style=False, sort_keys=False)
+    filtered_issues = []
+    for issue in results.get("issues", []):
+        filtered_issue = {
+            "name": issue.get("name"),
+            "namespace": issue.get("namespace"),
+            "fault": issue.get("fault"),
+            "severity": issue.get("severity")
+        }
+        filtered_issues.append(filtered_issue)
+
+    filtered_results = {"issues": filtered_issues}
+    return yaml.dump(filtered_results, default_flow_style=False, sort_keys=False)
