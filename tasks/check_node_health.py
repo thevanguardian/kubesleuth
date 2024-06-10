@@ -30,17 +30,17 @@ def check_node_health() -> Dict[str, Any]:
                     append_issue(issues, f"node/{node_name}", "default", "Node has NetworkUnavailable.", "Medium")
 
             # Check node resource allocations
-            allocatable = node.status.allocatable
-            capacity = node.status.capacity
-            if allocatable['cpu'] < '2':
+            allocatable = node.status.allocatable or {}
+            if allocatable.get('cpu', '0') < '2':
                 append_issue(issues, f"node/{node_name}", "default", "Node has less than 2 CPUs allocatable.", "Medium")
-            if allocatable['memory'] < '8Gi':
+            if allocatable.get('memory', '0') < '8Gi':
                 append_issue(issues, f"node/{node_name}", "default", "Node has less than 8Gi of memory allocatable.", "Medium")
 
             # Check node taints
-            for taint in node.spec.taints:
-                if taint.effect in ["NoSchedule", "NoExecute"]:
-                    append_issue(issues, f"node/{node_name}", "default", f"Node has taint {taint.key} with effect {taint.effect}.", "Medium")
+            if node.spec.taints:
+                for taint in node.spec.taints:
+                    if taint.effect in ["NoSchedule", "NoExecute"]:
+                        append_issue(issues, f"node/{node_name}", "default", f"Node has taint {taint.key} with effect {taint.effect}.", "Medium")
 
         return {"issues": issues}
     except ApiException as e:
