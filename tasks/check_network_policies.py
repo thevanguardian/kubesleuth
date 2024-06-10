@@ -1,55 +1,49 @@
-"""
-Checks the network policies in the Kubernetes cluster and returns a dictionary with the network policies and any issues found.
-
-Returns:
-    dict: A dictionary with the following keys:
-        "network_policies": A list of dictionaries representing the network policies in the cluster.
-        "issues": A list of dictionaries representing any issues found with the network policies.
-            Each issue dictionary has the following keys:
-                "message": A string describing the issue.
-                "severity": A string indicating the severity of the issue ("High", "Medium", or "Low").
-                "namespace": The namespace of the network policy (if applicable).
-                "name": The name of the network policy (if applicable).
-"""
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
-from typing import Dict, Any
+from typing import Dict, Any, List
 from .utils import append_issue
 
 def check_network_policies() -> Dict[str, Any]:
     issues = []
     config.load_kube_config()
-    
-    v1 = client.NetworkingV1Api()
-    try:
-        netpols = v1.list_network_policy_for_all_namespaces().items
-        if not netpols:
-            append_issue(issues, "No network policies are defined.", "High")
-        else:
-            for np in netpols:
-                if not np.spec:
-                    append_issue(issues, "Network policy has no spec defined.", "Medium", namespace=np.metadata.namespace, name=np.metadata.name)
-                elif not np.spec.pod_selector:
-                    append_issue(issues, "Network policy has no pod selector defined.", "Medium", namespace=np.metadata.namespace, name=np.metadata.name)
-                elif not np.spec.policy_types:
-                    append_issue(issues, "Network policy has no policy types defined.", "Medium", namespace=np.metadata.namespace, name=np.metadata.name)
-                elif not np.spec.ingress and not np.spec.egress:
-                    append_issue(issues, "Network policy has neither ingress nor egress rules defined.", "Medium", namespace=np.metadata.namespace, name=np.metadata.name)
-                else:
-                    append_issue(issues, "Network policy is appropriately configured.", "Low", namespace=np.metadata.namespace, name=np.metadata.name)
+    networking_v1 = client.NetworkingV1Api()
+    core_v1 = client.CoreV1Api()
 
-        return {
-            "network_policies": [np.to_dict() for np in netpols],
-            "issues": issues
-        }
+    try:
+        namespaces = core_v1.list_namespace().items
+        for namespace in namespaces:
+            namespace_name = namespace.metadata.name
+            netpols = networking_v1.list_namespaced_network_policy(namespace_name).items
+
+            # Generate Info issues for all network policies
+            for netpol in netpols:
+                append_issue(issues, f"netpol/{netpol.metadata.name}", namespace_name, "Network policy found in namespace.", "Info")
+
+            # Check if no network policies are in place
+            if not netpols:
+                append_issue(issues, f"netpol/none", namespace_name, "No network policies are in place.", "High")
+            else:
+                # Validate network policies for best practices
+                for netpol in netpols:
+                    if not netpol.spec.pod_selector.match_labels:
+                        append_issue(issues, f"netpol/{netpol.metadata.name}", namespace_name, "Network policy does not specify pod selectors.", "Medium")
+
+                    if not netpol.spec.policy_types or 'Ingress' not in netpol.spec.policy_types or 'Egress' not in netpol.spec.policy_types:
+                        append_issue(issues, f"netpol/{netpol.metadata.name}", namespace_name, "Network policy should specify both Ingress and Egress policy types.", "Medium")
+
+                    if not netpol.spec.ingress:
+                        append_issue(issues, f"netpol/{netpol.metadata.name}", namespace_name, "Network policy does not define any ingress rules.", "Medium")
+
+                    if not netpol.spec.egress:
+                        append_issue(issues, f"netpol/{netpol.metadata.name}", namespace_name, "Network policy does not define any egress rules.", "Medium")
+
+        return {"issues": issues}
     except ApiException as e:
         print(f"Exception when checking network policies: {e}")
-        return {
-            "network_policies": [],
-            "issues": issues
-        }
+        return {"issues": issues}
     finally:
-        v1.api_client.close()
+        core_v1.api_client.close()
+        networking_v1.api_client.close()
 
 # Example usage for debugging
 if __name__ == "__main__":

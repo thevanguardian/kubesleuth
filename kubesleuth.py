@@ -1,24 +1,14 @@
 import argparse
-from kubernetes import config
-from outputs import *
+from outputs import results_to_json, results_to_markdown, results_to_yaml
 from tasks import *
-
-# Load Kubernetes configuration
-def load_kube_config(kubeconfig=None, context=None):
-    if kubeconfig and context:
-        config.load_kube_config(config_file=kubeconfig, context=context)
-    elif kubeconfig:
-        config.load_kube_config(config_file=kubeconfig)
-    elif context:
-        config.load_kube_config(context=context)
-    else:
-        config.load_kube_config()
 
 # Filter issues by severity level
 def filter_issues_by_level(issues, level):
     if level == 'all':
         return issues
-    return [issue for issue in issues if issue['severity'].lower() == level]
+    elif level == 'debug':
+        return issues  # In debug mode, include all issues and info
+    return [issue for issue in issues if issue['severity'].lower() == level or (level == 'info' and issue['severity'].lower() == 'info')]
 
 # Main audit function
 def audit_kubernetes(kubeconfig=None, context=None):
@@ -33,6 +23,7 @@ def audit_kubernetes(kubeconfig=None, context=None):
         check_namespace_isolation,
         check_privileged_containers,
         check_versions,
+        check_node_health,
     ]
 
     for check in checks:
@@ -49,7 +40,7 @@ def main():
     parser.add_argument("--output", choices=["json", "markdown", "yaml"], default="json", help="Output format (json, markdown, or yaml)")
     parser.add_argument("--kubeconfig", help="Path to the kubeconfig file", default=None)
     parser.add_argument("--context", help="Kubernetes context to use", default=None)
-    parser.add_argument("--level", choices=["high", "medium", "low", "all"], default="all", help="Assessment level to display")
+    parser.add_argument("--level", choices=["high", "medium", "low", "all", "debug"], default="all", help="Assessment level to display")
     args = parser.parse_args()
 
     audit_results = audit_kubernetes(kubeconfig=args.kubeconfig, context=args.context)
@@ -65,8 +56,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
