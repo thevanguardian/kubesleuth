@@ -1,0 +1,39 @@
+name: Manage Develop to Main PR
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - develop
+
+jobs:
+  manage-develop-pr:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up GitHub CLI
+        uses: actions/setup-gh@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Find existing PR
+        id: find_pr
+        run: |
+          gh pr list --base main --head develop --state open --json number --jq '.[0].number' > pr_number.txt
+          PR_NUMBER=$(cat pr_number.txt)
+          echo "::set-output name=pr_number::$PR_NUMBER"
+
+      - name: Update existing PR
+        if: steps.find_pr.outputs.pr_number
+        run: |
+          PR_NUMBER=${{ steps.find_pr.outputs.pr_number }}
+          gh pr comment $PR_NUMBER --body "Merged PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}"
+
+      - name: Create new PR
+        if: steps.find_pr.outputs.pr_number == ''
+        run: |
+          gh pr create --base main --head develop --title "Pending Release" --body "Merged PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}"
