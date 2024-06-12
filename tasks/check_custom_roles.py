@@ -1,56 +1,84 @@
-"""
-Checks for the usage of default Kubernetes roles and cluster roles, and reports any issues found.
-
-Returns:
-    dict: A dictionary containing the following keys:
-        - "roles": A list of dictionaries representing the Kubernetes roles found.
-        - "cluster_roles": A list of dictionaries representing the Kubernetes cluster roles found.
-        - "issues": A list of dictionaries representing any issues found, with the following keys:
-            - "message": A description of the issue.
-            - "severity": The severity of the issue ("High" or "Low").
-            - "namespace": The namespace of the role (if applicable).
-            - "name": The name of the role or cluster role.
-"""
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
-from typing import Dict, Any
+from typing import Dict, Any, List
 from .utils import append_issue
 
+# Check if the role is a default Kubernetes role
+def is_default_role(role_name: str) -> bool:
+    default_roles = [
+        "cluster-admin", "admin", "edit", "view", "system:node", 
+        "system:node-proxier", "system:node-bootstrapper", 
+        "system:certificates.k8s.io:certificatesigningrequests:nodeclient",
+        "system:certificates.k8s.io:certificatesigningrequests:selfnodeclient"
+    ]
+    return role_name in default_roles
+
+# Check if the role has overly broad permissions
+def has_overly_broad_permissions(role) -> bool:
+    for rule in role.rules:
+        if ('*' in (rule.verbs or []) or 
+            '*' in (rule.api_groups or []) or 
+            '*' in (rule.resources or [])):
+            return True
+    return False
+
+# Main function to check custom roles
 def check_custom_roles() -> Dict[str, Any]:
     issues = []
     config.load_kube_config()
-    
-    v1 = client.RbacAuthorizationV1Api()
+
+    rbac_v1 = client.RbacAuthorizationV1Api()
     try:
-        roles = v1.list_role_for_all_namespaces().items
-        cluster_roles = v1.list_cluster_role().items
+        roles = rbac_v1.list_role_for_all_namespaces().items
+        cluster_roles = rbac_v1.list_cluster_role().items
+        role_bindings = rbac_v1.list_role_binding_for_all_namespaces().items
+        cluster_role_bindings = rbac_v1.list_cluster_role_binding().items
 
-        for role in roles:
-            if "system:" in role.metadata.name:
-                append_issue(issues, "Default role is being used instead of a custom role.", "High", namespace=role.metadata.namespace, name=role.metadata.name)
+        custom_roles = [role for role in roles if not is_default_role(role.metadata.name)]
+        custom_cluster_roles = [cr for cr in cluster_roles if not is_default_role(cr.metadata.name)]
+
+        custom_role_count = len(custom_roles) + len(custom_cluster_roles)
+
+        # Check for default roles in role bindings
+        default_role_bindings = [
+            rb for rb in role_bindings 
+            if is_default_role(rb.role_ref.name)
+        ] + [
+            crb for crb in cluster_role_bindings 
+            if is_default_role(crb.role_ref.name)
+        ]
+
+        # Check for overly broad permissions in custom roles
+        overly_broad_custom_roles = [
+            role for role in custom_roles + custom_cluster_roles 
+            if has_overly_broad_permissions(role)
+        ]
+
+        if custom_role_count == 0:
+            if default_role_bindings:
+                append_issue(issues, "role/unknown", "default", "No custom roles exist and default roles are in use.", "High")
             else:
-                append_issue(issues, "Custom role is being used.", "Low", namespace=role.metadata.namespace, name=role.metadata.name)
+                append_issue(issues, "role/unknown", "default", "No custom roles exist and no default roles are in use.", "Medium")
+        elif custom_role_count <= 2:
+            append_issue(issues, "role/unknown", "default", "Only one or two custom roles exist.", "Low")
+        else:
+            append_issue(issues, "role/unknown", "default", f"{custom_role_count} custom roles found.", "Info")
 
-        for cluster_role in cluster_roles:
-            if "system:" in cluster_role.metadata.name:
-                append_issue(issues, "Default cluster role is being used instead of a custom role.", "High", name=cluster_role.metadata.name)
-            else:
-                append_issue(issues, "Custom cluster role is being used.", "Low", name=cluster_role.metadata.name)
+        if overly_broad_custom_roles:
+            for role in overly_broad_custom_roles:
+                append_issue(issues, f"role/{role.metadata.name}", role.metadata.namespace, "Role has overly broad permissions.", "High")
 
-        return {
-            "roles": [role.to_dict() for role in roles],
-            "cluster_roles": [cr.to_dict() for cr in cluster_roles],
-            "issues": issues
-        }
+        # Adding details of all custom roles and role bindings for debugging
+        append_issue(issues, "role/unknown", "default", f"Custom roles: {[role.metadata.name for role in custom_roles]}", "Info")
+        append_issue(issues, "role/unknown", "default", f"Custom cluster roles: {[cr.metadata.name for cr in custom_cluster_roles]}", "Info")
+        append_issue(issues, "role/unknown", "default", f"Default role bindings: {[rb.metadata.name for rb in default_role_bindings]}", "Info")
+
+        return {"issues": issues}
     except ApiException as e:
         print(f"Exception when checking custom roles: {e}")
-        return {
-            "roles": [],
-            "cluster_roles": [],
-            "issues": issues
-        }
+        return {"issues": issues}
     finally:
-        v1.api_client.close()
+        rbac_v1.api_client.close()
 
 # Example usage for debugging
 if __name__ == "__main__":

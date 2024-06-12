@@ -1,51 +1,59 @@
-"""
-Checks for privileged containers in the Kubernetes cluster and returns a dictionary with the list of privileged containers and a list of issues found.
-
-Returns:
-    dict: A dictionary with the following keys:
-        - "privileged_containers": A list of strings representing the namespaces and names of pods with privileged containers.
-        - "issues": A list of dictionaries, where each dictionary represents an issue found and has the following keys:
-            - "message": A string describing the issue.
-            - "severity": A string representing the severity of the issue ("High", "Medium", or "Low").
-            - "namespace": The namespace of the pod where the issue was found.
-            - "name": The name of the pod where the issue was found.
-"""
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
-from typing import Dict, Any
+from typing import Dict, Any, List
 from .utils import append_issue
 
 def check_privileged_containers() -> Dict[str, Any]:
     issues = []
     config.load_kube_config()
+    core_v1 = client.CoreV1Api()
 
-    v1 = client.CoreV1Api()
     try:
-        privileged_containers = []
-        pods = v1.list_pod_for_all_namespaces().items
+        pods = core_v1.list_pod_for_all_namespaces().items
         for pod in pods:
             for container in pod.spec.containers:
-                if container.security_context and container.security_context.privileged:
-                    privileged_containers.append(f"{pod.metadata.namespace}/{pod.metadata.name}")
-                    append_issue(issues, "Container is running with privileged access.", "High", namespace=pod.metadata.namespace, name=pod.metadata.name)
-                
-                # Check for industry best practices for containers
-                if not container.security_context:
-                    append_issue(issues, "Container has no security context defined.", "Medium", namespace=pod.metadata.namespace, name=pod.metadata.name)
-                else:
-                    if container.security_context.run_as_user is None:
-                        append_issue(issues, "Container is not running as a specific user.", "Medium", namespace=pod.metadata.namespace, name=pod.metadata.name)
-                    if container.security_context.run_as_non_root is None or not container.security_context.run_as_non_root:
-                        append_issue(issues, "Container is not configured to run as non-root.", "High", namespace=pod.metadata.namespace, name=pod.metadata.name)
-                    if container.security_context.read_only_root_filesystem is None or not container.security_context.read_only_root_filesystem:
-                        append_issue(issues, "Container root filesystem is not read-only.", "Medium", namespace=pod.metadata.namespace, name=pod.metadata.name)
+                container_name = f"pod/{pod.metadata.name}/{container.name}"
+                namespace = pod.metadata.namespace
+                security_context = container.security_context
 
-        return {"privileged_containers": privileged_containers, "issues": issues}
+                # Generate Info issues for all containers
+                append_issue(issues, container_name, namespace, "Container configuration found.", "Info")
+
+                # Check if container is privileged
+                if security_context and security_context.privileged:
+                    append_issue(issues, container_name, namespace, "Container is running with privileged security context.", "High")
+
+                # Check for read-only root filesystem
+                if not security_context or not security_context.read_only_root_filesystem:
+                    append_issue(issues, container_name, namespace, "Container does not have a read-only root filesystem.", "Medium")
+
+                # Check for unnecessary capabilities
+                if security_context and security_context.capabilities and security_context.capabilities.drop:
+                    if 'ALL' not in security_context.capabilities.drop:
+                        append_issue(issues, container_name, namespace, "Container does not drop all unnecessary capabilities.", "Medium")
+
+                # Check for host network mode
+                if pod.spec.host_network:
+                    append_issue(issues, container_name, namespace, "Pod is using the host network mode.", "Medium")
+
+                # Check if container runs as root user
+                if not security_context or not security_context.run_as_user or security_context.run_as_user == 0:
+                    append_issue(issues, container_name, namespace, "Container is running as the root user.", "Medium")
+
+                # Check for host IPC mode
+                if pod.spec.host_ipc:
+                    append_issue(issues, container_name, namespace, "Pod is using the host IPC mode.", "Medium")
+
+                # Check for host PID mode
+                if pod.spec.host_pid:
+                    append_issue(issues, container_name, namespace, "Pod is using the host PID mode.", "Medium")
+
+        return {"issues": issues}
     except ApiException as e:
         print(f"Exception when checking privileged containers: {e}")
-        return {"privileged_containers": [], "issues": issues}
+        return {"issues": issues}
     finally:
-        v1.api_client.close()
+        core_v1.api_client.close()
 
 # Example usage for debugging
 if __name__ == "__main__":

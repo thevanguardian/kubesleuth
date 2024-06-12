@@ -2,9 +2,11 @@ from setuptools import setup, find_packages
 
 setup(
     name="kubesleuth",
-    use_scm_version=True,
-    setup_requires=['setuptools_scm'],
-    description="Kubernetes Configuration Audit Tool",
+    version="0.1.1",
+    description="A tool for auditing Kubernetes clusters for misconfigurations, security issues, and best practices.",
+    long_description=open('README.md').read(),
+    long_description_content_type='text/markdown',
+
     author="Benjamin Cody Pate",
     author_email="resume@epic-geek.net",
     url="https://github.com/thevanguardian/kubesleuth",

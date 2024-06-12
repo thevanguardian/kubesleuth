@@ -1,21 +1,21 @@
-"""
-Generates a Markdown report from the provided results using a Jinja2 template.
-
-Args:
-    results (dict): A dictionary containing the results to be rendered in the Markdown report.
-
-Returns:
-    str: The generated Markdown report.
-"""
+from typing import Dict, Any
 from jinja2 import Environment, FileSystemLoader
 import os
 
-def results_to_markdown(results):
-    # Load the Jinja2 template
-    template_loader = FileSystemLoader(searchpath=os.path.join(os.path.dirname(__file__), '..', 'templates'))
-    template_env = Environment(loader=template_loader)
-    template = template_env.get_template('audit_template.md.j2')
+def results_to_markdown(results: Dict[str, Any]) -> str:
+    filtered_issues = []
+    for issue in results.get("issues", []):
+        filtered_issue = {
+            "name": issue.get("name"),
+            "namespace": issue.get("namespace"),
+            "fault": issue.get("fault"),
+            "severity": issue.get("severity")
+        }
+        filtered_issues.append(filtered_issue)
 
-    # Render the template with the results
-    markdown_output = template.render(results=results)
+    filtered_results = {"issues": filtered_issues}
+
+    env = Environment(loader=FileSystemLoader(os.path.dirname(__file__) + '/../templates'))
+    template = env.get_template('audit_template.md.j2')
+    markdown_output = template.render(results=filtered_results)
     return markdown_output

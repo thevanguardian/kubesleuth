@@ -1,5 +1,5 @@
 # KubeSleuth
-
+![KubeSleuth](kube-sleuth.png)
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-1.18%2B-blue)
 ![License](https://img.shields.io/badge/license-GPL%20v3-blue)
