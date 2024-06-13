@@ -1,5 +1,23 @@
 import argparse
-from version import __version__
+from kubesleuth.version import __version__
+from kubesleuth.utils.k8s_client import load_k8s_config
+from kubernetes.client import ApiClient, CoreV1Api
+from kubernetes.client.rest import ApiException
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def verify_k8s_connectivity(api_client: ApiClient) -> bool:
+    try:
+        v1 = CoreV1Api(api_client)
+        v1.get_api_resources()
+        logger.info("Kubernetes connectivity verified")
+        return True
+    except ApiException as e:
+        logger.error("Failed to verify Kubernetes connectivity: %s", e)
+        return False
 
 def main():
     parser = argparse.ArgumentParser(description="Kubernetes Configuration Audit by KubeSleuth")
@@ -9,6 +27,14 @@ def main():
     parser.add_argument("--level", choices=["high", "medium", "low", "info", "debug"], default="all", help="Assessment level to display")
     parser.add_argument("--version", action="version", version=f"{__version__}")
     args = parser.parse_args()
+
+    # Load Kubernetes configuration
+    k8s_client = load_k8s_config(kubeconfig=args.kubeconfig, context=args.context)
+
+    # Verify Kubernetes connectivity
+    if not verify_k8s_connectivity(k8s_client):
+        logger.error("Unable to connect to Kubernetes cluster. Exiting.")
+        exit(1)
 
     # Placeholder for future functionality
     print(f"Output format: {args.output}")

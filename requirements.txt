@@ -1,4 +1,5 @@
 kubernetes
+wheel
 requests
 pyyaml
 jinja2

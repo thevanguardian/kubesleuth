@@ -6,7 +6,7 @@ PYTHON = python3
 PIP = pip3
 TWINE = twine
 
-.PHONY: all install develop build dist clean version
+.PHONY: all install develop build dist clean version reset
 
 # Default target
 all: install
@@ -27,6 +27,9 @@ upload:
 # Clean build artifacts
 clean:
 	rm -rf build dist *.egg-info
+
+reset:
+	rm -rf .venv && python3 -m venv .venv && source .venv/bin/activate && $(PIP) install -r requirements.txt
 
 # Test installation
 .PHONY: test-install
