@@ -12,12 +12,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def verify_k8s_connectivity(api_client: ApiClient) -> bool:
-    """
-    Verify Kubernetes connectivity.
-
-    :param api_client: Kubernetes API client
-    :return: True if connectivity is verified, False otherwise
-    """
     try:
         v1 = CoreV1Api(api_client)
         v1.get_api_resources()
