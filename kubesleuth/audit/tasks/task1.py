@@ -1,5 +1,11 @@
-from kubesleuth.audit.registry import register_task
+from kubesleuth.audit.registry import register_category
 
-@register_task('Security', 'Configuration')
+@register_category('General', 'Debugging')
 def run():
-    print("Running task1.")
+  categories = run.categories
+  return {
+    'severity': 'high',
+    'categories': categories,
+    'resource_id': 'debug/resource1',
+    'message': f"Debug message",
+  }

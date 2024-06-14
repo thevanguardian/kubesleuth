@@ -1,7 +1,8 @@
 task_registry = {}
 
-def register_task(*categories):
+def register_category(*categories):
 	def decorator(func):
+		func.categories = categories  # Store categories in the function
 		for category in categories:
 			if category not in task_registry:
 				task_registry[category] = []
