@@ -1,11 +1,11 @@
 from typing import List, Dict
 
-def append_issue(issues: List[Dict[str, str]], name: str, namespace: str, fault: str, severity: str):
+def append_issue(issues: List[Dict[str, str]], name: str, namespace: str, fault: str, threat: str):
     issue = {
         "name": name,
         "namespace": namespace,
         "fault": fault,
-        "severity": severity
+        "threat": threat
     }
     issues.append(issue)
 

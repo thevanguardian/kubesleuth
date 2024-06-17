@@ -2,7 +2,7 @@ import argparse
 from kubesleuth.version import __version__
 from kubesleuth.utils.k8s_client import load_k8s_config
 import kubesleuth.audit.tasks  # Ensure tasks are dynamically imported and registered
-from kubesleuth.audit.registry import get_tasks_by_category, get_available_categories
+from kubesleuth.audit.registry import get_tasks_by_category, get_tasks_by_threat, get_available_categories, get_available_threats
 from kubesleuth.outputs.console import output_console  # Import console output function
 from kubernetes.client import ApiClient, CoreV1Api
 from kubernetes.client.rest import ApiException
@@ -33,13 +33,13 @@ def main():
     parser.add_argument("--output", choices=["json", "markdown", "yaml", "console"], default="console", help="Output format (json, markdown, yaml, or console)")
     parser.add_argument("--kubeconfig", help="Path to the kubeconfig file", default=None)
     parser.add_argument("--context", help="Kubernetes context to use", default=None)
-    parser.add_argument("--level", choices=["high", "medium", "low", "info", "all"], default="all", help="Assessment level to display")
     parser.add_argument("--version", action="version", version=f"{__version__}")
 
-    # Dynamically get the list of available categories
+    # Dynamically get the list of available categories and threats
     available_categories = get_available_categories()
+    available_threats = get_available_threats()
     parser.add_argument("--category", choices=available_categories, default="General", help="Category of tasks to run")
-
+    parser.add_argument("--threat", choices=available_threats, default="high", help="Threat level of tasks to run")
     args = parser.parse_args()
 
     # Load Kubernetes configuration
@@ -53,13 +53,24 @@ def main():
     # Placeholder for assessment results
     assessment_results = []
 
+    # Collect unique tasks to avoid duplicates
+    tasks_to_run = set()
+
     # Run tasks based on category
     if args.category:
         tasks = get_tasks_by_category(args.category)
-        for task in tasks:
-            result = task()  # Assuming each task returns a dictionary with assessment results
-            if result:
-                assessment_results.append(result)
+        tasks_to_run.update(tasks)
+
+    # Run tasks based on threat level
+    if args.threat:
+        tasks = get_tasks_by_threat(args.threat)
+        tasks_to_run.update(tasks)
+
+    # Execute unique tasks
+    for task in tasks_to_run:
+        result = task()
+        if result:
+            assessment_results.append(result)
 
     # Output results
     if args.output == "console":
@@ -71,7 +82,7 @@ def main():
     print(f"Output format: {args.output}")
     print(f"Kubeconfig path: {args.kubeconfig}")
     print(f"Kubernetes context: {args.context}")
-    print(f"Assessment level: {args.level}")
+    print(f"Assessment level: {args.threat}")
 
 if __name__ == "__main__":
     main()

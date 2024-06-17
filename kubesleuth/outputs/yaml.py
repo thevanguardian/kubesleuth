@@ -8,7 +8,7 @@ def results_to_yaml(results: Dict[str, Any]) -> str:
             "name": issue.get("name"),
             "namespace": issue.get("namespace"),
             "fault": issue.get("fault"),
-            "severity": issue.get("severity")
+            "threat": issue.get("threat")
         }
         filtered_issues.append(filtered_issue)
 
