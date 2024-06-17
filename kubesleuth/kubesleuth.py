@@ -3,7 +3,7 @@ from kubesleuth.version import __version__
 from kubesleuth.utils.k8s_client import load_k8s_config
 import kubesleuth.audit.tasks  # Ensure tasks are dynamically imported and registered
 from kubesleuth.audit.registry import get_tasks_by_category, get_tasks_by_threat, get_available_categories, get_available_threats
-from kubesleuth.outputs.console import output_console  # Import console output function
+import kubesleuth.outputs
 from kubernetes.client import ApiClient, CoreV1Api
 from kubernetes.client.rest import ApiException
 import logging
@@ -74,7 +74,18 @@ def main():
 
     # Output results
     if args.output == "console":
+        from kubesleuth.outputs.console import output_console
         output_console(assessment_results)
+    elif args.output == "json":
+        from kubesleuth.outputs.json import output_json
+        print(output_json(assessment_results))
+    elif args.output == "yaml":
+        from kubesleuth.outputs.json import output_yaml
+        print(output_yaml(assessment_results))
+    elif args.output == "markdown":
+        from kubesleuth.outputs.markdown import output_markdown
+        print(output_markdown(assessment_results))
+    
     else:
         print(f"Output format {args.output} is not yet implemented.")
 

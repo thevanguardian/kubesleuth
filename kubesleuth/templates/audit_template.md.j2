@@ -1,10 +1,10 @@
-## Kubernetes Audit Report
+# Audit Report
 
-{% for issue in results.issues %}
-### Issue
-- **Name**: {{ issue.name }}
-- **Namespace**: {{ issue.namespace }}
-- **Fault**: {{ issue.fault }}
-- **Threat Level**: {{ issue.threat }}
+{% for result in results %}
+## Resource ID: {{ result.resource_id }}
+
+- **Threat Level:** {{ result.threat | upper }}
+- **Categories:** {{ result.categories | join(', ') }}
+- **Message:** {{ result.message }}
 
 {% endfor %}

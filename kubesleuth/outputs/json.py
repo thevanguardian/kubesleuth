@@ -1,9 +1,21 @@
 import json
-def format_json_output(results):
-  return json.dumps(results, indent=4)
+
+def format_json_output(threat, categories, resource_id, message):
+  return {
+    "threat": threat,
+    "categories": categories,
+    "resource_id": resource_id,
+    "message": message
+  }
 
 def output_json(results):
-  try:
-    print(format_json_output(results))
-  except (TypeError, ValueError) as e:
-    print(f"Error in JSON output: {e}.")
+  formatted_results = [
+    format_json_output(
+        result['threat'],
+        result['categories'],
+        result['resource_id'],
+        result['message']
+    )
+    for result in results
+  ]
+  return json.dumps(formatted_results, indent=2)
