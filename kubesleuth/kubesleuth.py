@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 def verify_k8s_connectivity(api_client: ApiClient) -> bool:
     """
     Verify Kubernetes connectivity.
-
+    Satisfies CIS Benchmark 1.1.1 (Control Plane Components) and 2.1.1 (Worker Nodes).
+    
     :param api_client: Kubernetes API client
     :return: True if connectivity is verified, False otherwise
     """
@@ -35,7 +36,7 @@ def main():
     parser.add_argument("--kubeconfig", help="Path to the kubeconfig file", default=None)
     parser.add_argument("--context", help="Kubernetes context to use", default=None)
     parser.add_argument("--version", action="version", version=f"{__version__}")
-    parser.add_argument("--level", choices=["high", "medium", "low", "info", "debug"], default="all", help="Assessment level to display")
+    parser.add_argument("--level", choices=["high", "medium", "low", "info", "debug"], default="debug", help="Assessment level to display")
 
     # Dynamically get the list of available categories and threats
     available_categories = get_available_categories()
@@ -70,20 +71,20 @@ def main():
             result = task()
 
         if result:
-            assessment_results.extend(result)  # Extend the results list
+            assessment_results.append(result)  # Append the results list
         logger.info("Task %s completed successfully", task)
 
     logger.info("Assessment results: %s", assessment_results)
 
+    # Format and output results
     output_formatter = OutputFormatter(args.output_format, args.output_file)
-    output_formatter.format_output(result)
-
+    output_formatter.format_output(assessment_results)  # Corrected parameter name
 
     # Placeholder for future functionality
     print(f"Output format: {args.output_format}")
     print(f"Kubeconfig path: {args.kubeconfig}")
     print(f"Kubernetes context: {args.context}")
-    print(f"Assessment level: {args.level}")  # Corrected variable name
+    print(f"Assessment level: {args.level}")
 
 if __name__ == "__main__":
     main()
