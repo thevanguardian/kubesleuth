@@ -10,6 +10,7 @@
 # - Output Results
 # - Register Task
 
+import os
 import logging
 import requests
 from kubernetes import client, config
@@ -19,7 +20,7 @@ from packaging.version import Version
 
 logger = logging.getLogger(__name__)
 
-@register_category('Configuration', 'General')
+@register_category('Configuration', 'Versions', 'CIS_Benchmark', 'General')
 class CheckVersions:
 
     def __init__(self):
@@ -28,6 +29,7 @@ class CheckVersions:
         self.v1 = client.VersionApi()
         self.latest_stable_version = self.get_latest_stable_version()
         self.current_versions = self.get_current_versions()
+        self.resource_id = os.path.splitext(os.path.basename(__file__))[0]  # Set resource_id to filename sans extension
 
     def get_latest_stable_version(self) -> Version:
         stable_version_url = "https://storage.googleapis.com/kubernetes-release/release/stable.txt"
@@ -58,7 +60,7 @@ class CheckVersions:
         results = {
             'threat': 'info',
             'categories': self.categories,
-            'resource_id': 'version_scan',
+            'resource_id': self.resource_id,
             'message': 'Kubernetes component version comparison.',
             'sub_messages': []
         }

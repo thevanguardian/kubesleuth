@@ -36,12 +36,17 @@ def main():
     parser.add_argument("--kubeconfig", help="Path to the kubeconfig file", default=None)
     parser.add_argument("--context", help="Kubernetes context to use", default=None)
     parser.add_argument("--version", action="version", version=f"{__version__}")
-    parser.add_argument("--level", choices=["critical", "warn", "info", "debug"], default="all", help="Assessment level to display")
+    parser.add_argument("--level", choices=["critical", "warn", "info", "debug"], default="debug", help="Assessment level to display")
 
     # Dynamically get the list of available categories and threats
     available_categories = get_available_categories()
     parser.add_argument("--category", choices=available_categories, default="General", help="Category of tasks to run")
     args = parser.parse_args()
+
+    # Ensure kubeconfig and context are not used together
+    if args.kubeconfig and args.context:
+        logger.error("You cannot use both --kubeconfig and --context at the same time. Please provide only one.")
+        exit(1)
 
     # Load Kubernetes configuration
     k8s_client = load_k8s_config(kubeconfig=args.kubeconfig, context=args.context)
@@ -76,15 +81,25 @@ def main():
 
     logger.info("Assessment results: %s", assessment_results)
 
-    # Format and output results
-    output_formatter = OutputFormatter(args.output_format, args.output_file)
-    output_formatter.format_output(assessment_results)  # Corrected parameter name
+    # Filter results based on the selected level
+    if args.level != 'debug':
+        filtered_results = []
+        for result in assessment_results:
+            if result['threat'] == args.level or args.level == 'debug':
+                filtered_results.append(result)
+            if 'sub_messages' in result:
+                result['sub_messages'] = [msg for msg in result['sub_messages'] if msg['threat'] == args.level or args.level == 'debug']
+        assessment_results = filtered_results
 
-    # Placeholder for future functionality
-    print(f"Output format: {args.output_format}")
-    print(f"Kubeconfig path: {args.kubeconfig}")
-    print(f"Kubernetes context: {args.context}")
-    print(f"Assessment level: {args.level}")
+    # Format and output results
+    output_formatter = OutputFormatter(
+        output_format=args.output_format,
+        output_file=args.output_file,
+        kubeconfig=args.kubeconfig,
+        context=args.context,
+        level=args.level
+    )
+    output_formatter.format_output(assessment_results)
 
 if __name__ == "__main__":
     main()
