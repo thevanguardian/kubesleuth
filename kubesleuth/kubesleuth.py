@@ -36,7 +36,7 @@ def main():
     parser.add_argument("--kubeconfig", help="Path to the kubeconfig file", default=None)
     parser.add_argument("--context", help="Kubernetes context to use", default=None)
     parser.add_argument("--version", action="version", version=f"{__version__}")
-    parser.add_argument("--level", choices=["high", "medium", "low", "info", "debug"], default="debug", help="Assessment level to display")
+    parser.add_argument("--level", choices=["critical", "warn", "info", "debug"], default="all", help="Assessment level to display")
 
     # Dynamically get the list of available categories and threats
     available_categories = get_available_categories()
