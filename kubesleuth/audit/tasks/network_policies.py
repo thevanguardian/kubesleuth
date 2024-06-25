@@ -25,7 +25,7 @@ from kubesleuth.audit.registry import register_category
 
 logger = logging.getLogger(__name__)
 
-@register_category('Security', 'NetworkPolicies', 'CIS_Benchmark', 'NamespaceIsolation', 'Configuration', 'Debug')
+@register_category('Security', 'NetworkPolicies', 'CIS_Benchmark', 'NamespaceIsolation', 'Configuration')
 class NetworkPoliciesScan:
     
     def __init__(self):
