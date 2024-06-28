@@ -40,8 +40,14 @@ def main():
 
     # Dynamically get the list of available categories and threats
     available_categories = get_available_categories()
-    parser.add_argument("--category", choices=available_categories, default="General", help="Category of tasks to run")
+    parser.add_argument("--category", choices=available_categories, help="Category of tasks to run")
+    parser.add_argument("--task", help="Specific task to run. If not specified, all tasks in the category will be run.")
     args = parser.parse_args()
+
+    # Ensure --task and --category are not used together
+    if args.task and args.category:
+        logger.error("You cannot use both --task and --category at the same time. Please provide only one.")
+        exit(1)
 
     # Ensure kubeconfig and context are not used together
     if args.kubeconfig and args.context:
@@ -63,7 +69,11 @@ def main():
     tasks_to_run = set()
 
     # Run tasks based on category
-    if args.category:
+    if args.task:
+        task_module = __import__(f"kubesleuth.audit.tasks.{args.task}", fromlist=[args.task])
+        task_class = getattr(task_module, args.task)
+        tasks_to_run.add(task_class)
+    elif args.category:
         tasks = get_tasks_by_category(args.category)
         tasks_to_run.update(tasks)
 

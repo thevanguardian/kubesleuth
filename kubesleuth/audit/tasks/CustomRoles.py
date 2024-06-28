@@ -7,7 +7,7 @@ from kubesleuth.audit.registry import register_category
 logger = logging.getLogger(__name__)
 
 @register_category('Security', 'RBAC', 'CIS_Benchmark', 'Configuration')
-class CustomRolesScan:
+class CustomRoles:
     
     def __init__(self):
         self.categories = self.__class__.categories  # Initialize categories from class attribute
